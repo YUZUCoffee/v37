@@ -1,5 +1,6 @@
 "use client"
 
+import { database, ref, get, set } from "@/lib/firebase";
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -164,6 +165,28 @@ const sampleCoffeeBean: CoffeeBean = {
 
 export default function CoffeeBrewingNotes() {
   const [coffeeBean, setCoffeeBean] = useState<CoffeeBean | null>(null)
+  const handleSave = async () => {
+    if (!coffeeBean) {
+        console.error("❌ 错误: coffeeBean 为空，无法保存");
+        return;
+    }
+
+    console.log("📤 发送数据到 Firebase:", JSON.stringify(coffeeBean, null, 2));
+
+    try {
+        // 获取数据库引用
+        const beanRef = ref(database, `coffeeBeans/${coffeeBean.id}`);
+
+        // 将 coffeeBean 数据存入 Firebase
+        await set(beanRef, coffeeBean);
+
+        console.log("✅ 数据已成功保存到 Firebase:", coffeeBean);
+        alert("✅ 咖啡豆信息已成功保存！");
+    } catch (error) {
+        console.error("❌ 保存失败:", error);
+        alert("❌ 保存失败，请检查控制台错误信息！");
+    }
+};
   const [isEditing, setIsEditing] = useState(false)
 
   // Brewing parameters
@@ -178,24 +201,25 @@ export default function CoffeeBrewingNotes() {
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null)
 
   // Load coffee bean data from localStorage on mount
-  useEffect(() => {
-    const storedBean = localStorage.getItem("coffee-bean")
-    if (storedBean) {
-      const parsedBean = JSON.parse(storedBean)
-      setCoffeeBean(parsedBean)
-      setTemperature(parsedBean.recommendedParams.temperature)
-      setRatio(parsedBean.recommendedParams.ratio)
-      setTime(parsedBean.recommendedParams.time)
-      setDripper(parsedBean.recommendedParams.dripper)
-    } else {
-      // Load sample coffee bean data if nothing in localStorage
-      setCoffeeBean(sampleCoffeeBean)
-      setTemperature(sampleCoffeeBean.recommendedParams.temperature)
-      setRatio(sampleCoffeeBean.recommendedParams.ratio)
-      setTime(sampleCoffeeBean.recommendedParams.time)
-      setDripper(sampleCoffeeBean.recommendedParams.dripper)
-    }
-  }, [])
+useEffect(() => {
+    const fetchCoffeeBean = async () => {
+        if (!coffeeBean) return;
+
+        console.log("🐦 从 Firebase 获取咖啡豆数据:", coffeeBean.id);
+        
+        const beanRef = ref(database, `coffeeBeans/${coffeeBean.id}`);
+        const snapshot = await get(beanRef);
+
+        if (snapshot.exists()) {
+            console.log("✅ 从 Firebase 获取到的数据:", snapshot.val());
+            setCoffeeBean(snapshot.val()); // 更新状态
+        } else {
+            console.warn("⚠ Firebase 中未找到该咖啡豆数据！");
+        }
+    };
+
+    fetchCoffeeBean();
+}, []);
 
   // Save coffee bean data to localStorage
   useEffect(() => {
@@ -436,7 +460,7 @@ export default function CoffeeBrewingNotes() {
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                const formData = new FormData(e.currentTarget)
+                const formData = new FormData(e.currentTarget);
                 const updatedBean = {
                   ...coffeeBean,
                   name: formData.get("name") as string,
@@ -466,6 +490,8 @@ export default function CoffeeBrewingNotes() {
                   },
                 }
                 setCoffeeBean(updatedBean)
+                    handleSave(); // ✅ 调用 handleSave 进行数据存储
+}}
                 setIsEditing(false)
                 toast({
                   title: "Changes Saved",
