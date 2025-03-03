@@ -459,7 +459,7 @@ useEffect(() => {
           <ScrollArea className="flex-1 px-6 h-full">
             <form
               onSubmit={(e) => {
-                e.preventDefault()
+                e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 const updatedBean = {
                   ...coffeeBean,
@@ -499,6 +499,11 @@ useEffect(() => {
                 })
               }}
             >
+            <DialogFooter className="mt-6">
+                <Button type="submit">保存</Button>
+            </DialogFooter>
+          </form>
+
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="name" className="text-right">
