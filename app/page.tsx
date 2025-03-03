@@ -224,6 +224,25 @@ export default function CoffeeBrewingNotes() {
   }, [brewingRecords, coffeeBean])
 
   // Save brewing record
+  const handleSave = async () => {
+    if (!coffeeBean) {
+        console.error("❌ 错误: coffeeBean 为空，无法保存");
+        return;
+    }
+
+    console.log("📤 发送到 Firebase:", JSON.stringify(coffeeBean, null, 2));
+
+    try {
+        const beanRef = ref(database, `coffeeBeans/${coffeeBean.id}`);
+        await set(beanRef, coffeeBean);
+
+        console.log("✅ 数据已保存:", coffeeBean);
+        alert("咖啡豆信息已成功保存！");
+    } catch (error) {
+        console.error("❌ 保存失败:", error);
+        alert("保存失败，请检查控制台错误信息");
+    }
+}
   const saveBrewingRecord = () => {
     if (!coffeeBean) {
       toast({
