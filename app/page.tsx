@@ -145,7 +145,7 @@ const sampleCoffeeBean: CoffeeBean = {
   purchaseLink: "https://heartroasters.com/products/ethiopia-yirgacheffe",
   origin: "Yirgacheffe, Ethiopia",
   originCountry: "ethiopia",
-  altitude: "1,800-2,200 masl",
+  altitude: "1,800-2,200m",
   processingMethod: "washed",
   flavorProfile: {
     sweetness: 4.2,
